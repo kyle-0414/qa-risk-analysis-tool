@@ -221,8 +221,6 @@ export function useRiskToolState() {
     // 5. Final Visual Matrix
     setView("matrix");
     showToast("📈 최종 리스크 분포 시각화 매핑...");
-    await wait(2500);
-    showToast("✨ 전사 리스크 분석 프로세스 완료.");
   };
 
   return {
