@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from "react";
 import { Button, Input, Select } from "../../common/CommonUI";
-import { Badge, StatCard, Field } from "../../common/DisplayUI";
+import { Badge, Field } from "../../common/DisplayUI";
 import { getScore, getPriority } from "../../../utils/riskCalculations";
-import { Filter, Grid3X3, Layers, ZoomIn, ZoomOut, AlertCircle, TrendingUp } from "lucide-react";
+import { Grid3X3, Layers, ZoomIn, ZoomOut, AlertCircle, TrendingUp, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function RiskMatrix({ state }) {
   const { items, filters, setFilters, setView, setSelectedId, setForm } = state;
   const [selectedCell, setSelectedCell] = useState({ x: null, y: null });
 
-  const axis = [9, 5, 3, 1, 0];
+  const axisY = [9, 5, 3, 1, 0];
   const axisX = [0, 1, 3, 5, 9];
 
   const filteredItems = useMemo(() => {
@@ -40,105 +40,156 @@ export function RiskMatrix({ state }) {
     setView("detail");
   };
 
-  return (
-    <div className="space-y-8 pb-12">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Visual Risk Matrix</h1>
-          <p className="text-sm text-slate-500 font-medium tracking-tight">리스크 분포 데이터 시각화 및 밀집도 분석</p>
-        </div>
-        <div className="flex gap-2">
-            <Button variant="secondary" size="sm" className="w-10 h-10 p-0"><ZoomIn className="w-4 h-4" /></Button>
-            <Button variant="secondary" size="sm" className="w-10 h-10 p-0"><ZoomOut className="w-4 h-4" /></Button>
-        </div>
-      </div>
+  const getCellIntensity = (count) => {
+    if (count === 0) return "bg-white";
+    if (count < 2) return "bg-slate-50";
+    if (count < 5) return "bg-slate-100";
+    return "bg-slate-200/50";
+  };
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="grid grid-cols-4 gap-4">
-            <Field label="Risk Type Filter">
-                <Select value={filters.riskType} onChange={(e) => setFilters(f => ({...f, riskType: e.target.value}))} options={["All", "Product", "Project"]} />
-            </Field>
-            <Field label="Change Type Filter">
-                <Select value={filters.changeType} onChange={(e) => setFilters(f => ({...f, changeType: e.target.value}))} options={["All", "New", "Modify", "Maintenance", "Hotfix"]} />
-            </Field>
-            <Field label="Search">
-                <Input value={filters.search} onChange={(e) => setFilters(f => ({...f, search: e.target.value}))} placeholder="아이템 검색..." />
-            </Field>
-            <div className="pt-6 flex justify-end">
-                <Button variant="ghost" onClick={() => setFilters({ riskType: "All", changeType: "All", priority: "All", status: "All", search: "" })}>Clear Filters</Button>
+  return (
+    <div className="space-y-8 pb-12 w-full max-w-[1800px] mx-auto">
+      {/* Header Section */}
+      <div className="flex items-end justify-between border-b border-slate-200 pb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Visual Risk Matrix</h1>
+            <div className="bg-blue-600 text-[10px] font-black text-white px-2 py-0.5 rounded uppercase tracking-widest mt-0.5">Live Data</div>
+          </div>
+          <p className="text-sm text-slate-500 font-medium tracking-tight flex items-center gap-2">
+            <Info className="w-4 h-4 text-slate-300" /> 리스크 분포 시각화 및 데이터 밀집 구역(Hotspot) 분석 대시보드
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+            <div className="text-right mr-2">
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Visualization View</div>
+                <div className="text-[13px] font-bold text-slate-800">{filteredItems.length} items analyzed</div>
+            </div>
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"><ZoomIn className="w-4 h-4" /></button>
+                <div className="w-px h-4 bg-slate-200 self-center" />
+                <button className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"><ZoomOut className="w-4 h-4" /></button>
             </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr,360px] gap-8">
-        <div className="bg-white rounded-[40px] border border-slate-200 p-12 shadow-xl shadow-slate-200/20 relative overflow-hidden group">
-            {/* Background Gradients for Priority */}
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-red-50/20 pointer-events-none group-hover:bg-red-50/40 transition-colors" />
-            <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-slate-50/50 pointer-events-none" />
+      {/* Filter Section */}
+      <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Field label="Risk Type">
+                <Select value={filters.riskType} onChange={(e) => setFilters(f => ({...f, riskType: e.target.value}))} options={["All", "Product", "Project"]} />
+            </Field>
+            <Field label="Change Type">
+                <Select value={filters.changeType} onChange={(e) => setFilters(f => ({...f, changeType: e.target.value}))} options={["All", "New", "Modify", "Maintenance", "Hotfix"]} />
+            </Field>
+            <Field label="Search Items">
+                <Input value={filters.search} onChange={(e) => setFilters(f => ({...f, search: e.target.value}))} placeholder="Search by name or note..." />
+            </Field>
+            <div className="flex items-end justify-end">
+                <button 
+                    onClick={() => setFilters({ riskType: "All", changeType: "All", priority: "All", status: "All", search: "" })}
+                    className="h-11 px-6 text-[12px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-all border border-slate-200 rounded-xl hover:bg-slate-50 w-full lg:w-auto"
+                >
+                    Clear All Filters
+                </button>
+            </div>
+        </div>
+      </div>
 
-            <div className="flex relative">
-                {/* Y Axis Label */}
-                <div className="absolute -left-12 top-1/2 -rotate-90 origin-center text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none whitespace-nowrap">
-                    Impact Impact Impact
+      <div className="flex flex-col xl:flex-row gap-8 items-stretch pt-2">
+        {/* Main Matrix Board */}
+        <div className="xl:flex-1 bg-white rounded-[48px] border border-slate-200 p-10 lg:p-16 shadow-xl shadow-slate-200/20 relative overflow-hidden flex flex-col items-center min-h-[700px]">
+            {/* Standard Axes Labeling */}
+            {/* Impact Y-Axis (Left) */}
+            <div className="absolute left-6 lg:left-10 top-1/2 -translate-y-1/2 -rotate-180 flex items-center gap-4 [writing-mode:vertical-lr] pointer-events-none">
+                <div className="w-[1px] h-32 bg-slate-200" />
+                <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.5em] select-none">Impact Intensity</span>
+            </div>
+
+            <div className="relative w-full max-w-[700px] aspect-square flex flex-col mt-4">
+                {/* Visual Risk Zones Underlay */}
+                <div className="absolute inset-0 border border-slate-100/50 rounded-2xl overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 w-3/5 h-3/5 bg-red-50/10" />
+                    <div className="absolute bottom-0 right-0 w-2/5 h-2/5 bg-amber-50/10" />
                 </div>
 
-                <div className="flex-1 space-y-4">
-                    {axis.map((y) => (
-                    <div key={y} className="flex gap-4">
-                        <div className="w-8 h-24 flex items-center justify-end pr-2 text-xs font-black text-slate-400 leading-none">{y}</div>
-                        <div className="flex-1 grid grid-cols-5 gap-4">
-                        {axisX.map((x) => {
-                            const itemsAtCell = filteredItems.filter((item) => item.likelihood === x && item.impact === y);
-                            const isSelected = selectedCell.x === x && selectedCell.y === y;
-                            const score = x * y;
-                            const isCriticalAtOrigin = score >= 45;
-                            const isHighAtOrigin = score >= 15 && score < 45;
+                <div className="flex-1 flex flex-col">
+                    {axisY.map((y) => (
+                    <div key={y} className="flex-1 flex">
+                        {/* Y-Axis tick */}
+                        <div className="w-10 flex items-center justify-end pr-4 text-[13px] font-black text-slate-400 leading-none select-none uppercase">{y}</div>
+                        
+                        <div className="flex-1 flex gap-2 lg:gap-3 py-1 lg:py-1.5">
+                            {axisX.map((x) => {
+                                const itemsAtCell = filteredItems.filter((item) => item.likelihood === x && item.impact === y);
+                                const isSelected = selectedCell.x === x && selectedCell.y === y;
+                                const cellCount = itemsAtCell.length;
 
-                            return (
-                            <button
-                                key={`${x}-${y}`}
-                                onClick={() => setSelectedCell({ x, y })}
-                                className={`relative h-24 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-2 group/cell ${
-                                isSelected
-                                    ? "bg-slate-900 border-slate-900 shadow-2xl scale-[1.05] z-10"
-                                    : itemsAtCell.length > 0
-                                    ? isCriticalAtOrigin ? "bg-red-50/80 border-red-200 shadow-sm" : isHighAtOrigin ? "bg-amber-50/80 border-amber-200 shadow-sm" : "bg-white border-slate-100 shadow-sm"
-                                    : "bg-slate-200/5 hover:bg-slate-100 hover:border-slate-300 border-dashed border-slate-200 shadow-none"
-                                }`}
-                            >
-                                {itemsAtCell.length > 0 && (
-                                    <div className={`text-xl font-black ${isSelected ? "text-white" : isCriticalAtOrigin ? "text-red-700" : isHighAtOrigin ? "text-amber-700" : "text-slate-900"} tracking-tight`}>
-                                        {itemsAtCell.length}
-                                    </div>
-                                )}
-                                {isSelected && <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">L{x} • I{y}</div>}
-                                {itemsAtCell.length > 0 && !isSelected && (
-                                    <div className="flex gap-0.5 justify-center flex-wrap px-2">
-                                        {itemsAtCell.slice(0, 3).map((it) => (
-                                            <div key={it.id} className={`w-1.5 h-1.5 rounded-full ${isCriticalAtOrigin ? "bg-red-400" : isHighAtOrigin ? "bg-amber-400" : "bg-slate-300"}`} />
-                                        ))}
-                                    </div>
-                                )}
-                            </button>
-                            );
-                        })}
+                                return (
+                                <button
+                                    key={`${x}-${y}`}
+                                    onClick={() => setSelectedCell({ x, y })}
+                                    className={`relative flex-1 rounded-2xl border transition-all duration-500 flex items-center justify-center group/cell overflow-hidden ${
+                                    isSelected
+                                        ? "bg-slate-900 border-slate-900 shadow-2xl scale-[1.02] z-10"
+                                        : cellCount > 0
+                                        ? `${getCellIntensity(cellCount)} border-slate-200 shadow-sm hover:border-slate-400`
+                                        : "bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200"
+                                    }`}
+                                >
+                                    {/* Data Marker (Count Bubble) */}
+                                    {cellCount > 0 && (
+                                        <div className={`
+                                            w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-lg lg:text-xl font-black transition-all duration-500
+                                            ${isSelected 
+                                                ? "bg-white text-slate-900 shadow-lg" 
+                                                : "bg-slate-900 text-white shadow-md shadow-slate-200"
+                                            }
+                                        `}>
+                                            {cellCount}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Empty Cell Visual Aid */}
+                                    {cellCount === 0 && (
+                                        <div className="w-1 h-1 rounded-full bg-slate-200 opacity-0 group-hover/cell:opacity-100 transition-opacity" />
+                                    )}
+
+                                    {/* Selected Indicator Label */}
+                                    {isSelected && (
+                                        <div className="absolute bottom-3 text-[9px] font-black uppercase tracking-widest text-slate-400/80">L{x} • I{y}</div>
+                                    )}
+                                </button>
+                                );
+                            })}
                         </div>
                     </div>
                     ))}
-                    <div className="flex gap-4">
-                        <div className="w-8 h-8" />
-                        <div className="flex-1 grid grid-cols-5 gap-4 px-2">
-                            {axisX.map(x => <div key={x} className="w-full text-center text-xs font-black text-slate-400 leading-none">{x}</div>)}
+                    
+                    {/* Likelihood X-Axis (Bottom) */}
+                    <div className="flex">
+                        <div className="w-10" />
+                        <div className="flex-1 flex">
+                            {axisX.map(x => (
+                                <div key={x} className="flex-1 text-center py-4 text-[13px] font-black text-slate-400 uppercase leading-none select-none">{x}</div>
+                            ))}
                         </div>
                     </div>
-                    <div className="text-center pt-2 text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Likelihood Likelihood Likelihood</div>
                 </div>
+            </div>
+
+            {/* Likelihood Axis Label */}
+            <div className="mt-8 flex items-center gap-4 pointer-events-none">
+                <div className="w-32 h-[1px] bg-slate-200" />
+                <span className="text-[12px] font-black text-slate-400 uppercase tracking-[0.5em] select-none">Likelihood Probability</span>
+                <div className="w-32 h-[1px] bg-slate-200" />
             </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm min-h-[400px]">
-            <h3 className="flex items-center gap-2 text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">
+        {/* Right Detail Panel */}
+        <div className="xl:w-[400px] flex flex-col gap-8">
+          <div className="rounded-[40px] border border-slate-200 bg-white p-10 shadow-sm flex-1 min-h-[500px] flex flex-col overflow-hidden">
+            <h3 className="flex items-center gap-3 text-sm font-black text-slate-900 uppercase tracking-widest mb-8 border-b border-slate-100 pb-5">
               <Layers className="w-4 h-4 text-slate-400" /> Cell Item Snapshot
             </h3>
             
@@ -146,38 +197,40 @@ export function RiskMatrix({ state }) {
                 {selectedCell.x === null ? (
                     <motion.div 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center py-20 text-center"
+                        className="flex-1 flex flex-col items-center justify-center text-center px-4"
                     >
-                         <Grid3X3 className="w-12 h-12 text-slate-100 mb-4" />
-                         <p className="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-widest">분포 현황을 볼 매트릭스 셀을<br/>선택하세요.</p>
+                         <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mb-6">
+                            <Grid3X3 className="w-8 h-8 text-slate-200" />
+                         </div>
+                         <p className="text-[11px] font-black text-slate-400 leading-relaxed uppercase tracking-[0.2em]">Select a cell on the grid<br/>to analyze risk items</p>
                     </motion.div>
                 ) : (
                     <motion.div 
                         key={`${selectedCell.x}-${selectedCell.y}`}
-                        initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
-                        className="space-y-3"
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 flex flex-col overflow-hidden"
                     >
-                         <div className="flex items-center justify-between mb-4">
-                             <div className="text-[11px] font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">L: {selectedCell.x} • I: {selectedCell.y}</div>
-                             <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{cellItems.length} items found</div>
+                         <div className="flex items-center justify-between mb-6">
+                             <div className="text-[11px] font-black text-slate-900 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">L: {selectedCell.x} • I: {selectedCell.y}</div>
+                             <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{cellItems.length} items</div>
                          </div>
-                         <div className="space-y-2 overflow-y-auto max-h-[450px] pr-2 scrollbar-hide">
+                         <div className="space-y-3 overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                             {cellItems.map(it => (
-                                <button key={it.id} onClick={() => openEdit(it)} className="w-full text-left p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all group flex items-start gap-3">
-                                    <div className="flex-1">
-                                        <div className="text-[12px] font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{it.title}</div>
-                                        <div className="flex items-center gap-2 mt-1">
+                                <button key={it.id} onClick={() => openEdit(it)} className="w-full text-left p-5 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-blue-200 hover:shadow-md transition-all group relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <div className="text-[13px] font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-2">{it.title}</div>
+                                        <div className="flex items-center gap-2">
                                             <Badge priority={getPriority(getScore(it))} className="text-[9px] px-1.5 py-0 scale-90 origin-left" />
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{it.relatedArea}</span>
                                         </div>
                                     </div>
-                                    <TrendingUp className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-800" />
+                                    <TrendingUp className="absolute right-4 bottom-4 w-4 h-4 text-slate-200 group-hover:text-blue-500 group-hover:scale-110 transition-all" />
                                 </button>
                             ))}
                             {cellItems.length === 0 && (
-                                <div className="text-center py-10 opacity-30 grayscale saturate-0">
-                                    <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-                                    <div className="text-[10px] font-black uppercase tracking-widest">No Items</div>
+                                <div className="text-center py-20 opacity-30">
+                                    <AlertCircle className="w-10 h-10 mx-auto mb-3" />
+                                    <div className="text-[10px] font-black uppercase tracking-widest">Cell Empty</div>
                                 </div>
                             )}
                          </div>
@@ -186,21 +239,25 @@ export function RiskMatrix({ state }) {
             </AnimatePresence>
           </div>
 
-          <div className="bg-slate-50/80 rounded-3xl p-6 border border-slate-200/50">
-             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Priority Guidelines</h4>
-             <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                    <span className="text-[11px] font-bold text-slate-600">Critical (Score 45+)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-amber-400" />
-                    <span className="text-[11px] font-bold text-slate-600">High (Score 15-44)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-slate-300" />
-                    <span className="text-[11px] font-bold text-slate-600">Moderate/Low (Score 1-14)</span>
-                </div>
+          <div className="bg-slate-900 rounded-[40px] p-8 shadow-2xl">
+             <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+                <Info className="w-4 h-4 text-blue-400" />
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-white/60">Priority Guidelines</h4>
+             </div>
+             <div className="space-y-4">
+                {[
+                    { color: "bg-red-500", label: "Critical", range: "Score 45+", glow: "shadow-[0_0_12px_rgba(239,68,68,0.4)]" },
+                    { color: "bg-amber-500", label: "High", range: "Score 15-44", glow: "shadow-[0_0_12px_rgba(245,158,11,0.4)]" },
+                    { color: "bg-slate-400", label: "Moderate/Low", range: "Score 1-14", glow: "" }
+                ].map((row) => (
+                    <div key={row.label} className="flex items-center gap-4 group">
+                        <div className={`w-3 h-3 rounded-full ${row.color} ${row.glow} transition-transform group-hover:scale-125`} />
+                        <div className="flex-1">
+                            <div className="text-[11px] font-bold text-white uppercase tracking-tight">{row.label}</div>
+                            <div className="text-[10px] text-white/40 font-medium">{row.range}</div>
+                        </div>
+                    </div>
+                ))}
              </div>
           </div>
         </div>

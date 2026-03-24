@@ -12,9 +12,10 @@ export function RiskDetailForm({ form, setForm }) {
 
   const updateForm = (key, value) => setForm(f => ({ ...f, [key]: value }));
   const toggleEvidence = (flag) => {
-    updateForm("evidenceFlags", form.evidenceFlags.includes(flag)
-      ? form.evidenceFlags.filter(f => f !== flag)
-      : [...form.evidenceFlags, flag]
+    const currentFlags = form.evidenceFlags || [];
+    updateForm("evidenceFlags", currentFlags.includes(flag)
+      ? currentFlags.filter(f => f !== flag)
+      : [...currentFlags, flag]
     );
   };
 
@@ -96,7 +97,7 @@ export function RiskDetailForm({ form, setForm }) {
                   <Field label="Evidence / Red-flags">
                       <div className="flex flex-wrap gap-2">
                           {EVIDENCE_OPTIONS.map(opt => (
-                              <button key={opt} onClick={() => toggleEvidence(opt)} className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${form.evidenceFlags.includes(opt) ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}>{opt}</button>
+                              <button key={opt} onClick={() => toggleEvidence(opt)} className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${form.evidenceFlags?.includes(opt) ? 'bg-slate-900 border-slate-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}>{opt}</button>
                           ))}
                       </div>
                   </Field>

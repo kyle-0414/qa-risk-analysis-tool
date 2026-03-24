@@ -34,7 +34,7 @@ function App() {
       <Sidebar 
         currentView={state.view} 
         setView={state.setView} 
-        projectContext={state.captureContext} 
+        state={state} 
       />
       
       <main className="flex-1 overflow-auto relative">
