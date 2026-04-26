@@ -33,6 +33,8 @@ export function RiskAnalysisTable({ state }) {
       changeType: "New", // Default for analysis tab
       likelihood: row.likelihood,
       impact: row.impact,
+      likelihoodDetails: row.likelihoodDetails,
+      impactDetails: row.impactDetails,
       status: "Draft",
       project: captureContext.project,
       product: captureContext.product,
