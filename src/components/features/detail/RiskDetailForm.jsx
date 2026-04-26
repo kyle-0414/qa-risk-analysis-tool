@@ -29,8 +29,8 @@ function DetailAvgLine({ details, currentScore }) {
     return <div className="text-[11px] text-slate-300 pl-1">세부항목 미입력</div>;
   }
 
-  const avg = Math.round((entries.reduce((a, [, v]) => a + v, 0) / entries.length) * 10) / 10;
-  const hasDiff = Math.round(avg) !== currentScore;
+  const avg = Math.round(entries.reduce((a, [, v]) => a + v, 0) / entries.length);
+  const hasDiff = avg !== currentScore;
 
   return (
     <div className="relative pl-1" ref={ref}>
