@@ -35,6 +35,7 @@ export function useRiskToolState() {
   });
 
   const [criteria, setCriteria] = useState(INITIAL_CRITERIA);
+  const [activeRowId, setActiveRowId] = useState(null);
 
   const addCriterion = useCallback((group, name) => {
     if (!name.trim()) return;
@@ -148,6 +149,7 @@ export function useRiskToolState() {
     setCriteria(INITIAL_CRITERIA);
     setCaptureRows([makeCaptureRow(INITIAL_CRITERIA), makeCaptureRow(INITIAL_CRITERIA)]);
     setCaptureContext({ project: "", product: "", release: "", template: "" });
+    setActiveRowId(null);
     setView("identification");
     
     await wait(1800);
@@ -263,6 +265,7 @@ export function useRiskToolState() {
     toast, showToast, filters, setFilters, captureRows, setCaptureRows,
     captureContext, setCaptureContext, criteria, setCriteria,
     addCriterion, removeCriterion, renameCriterion,
+    activeRowId, setActiveRowId,
     resetForm, saveItem, deleteItem,
     filteredItems, isSlideOverOpen, setSlideOverOpen, runDemo
   };

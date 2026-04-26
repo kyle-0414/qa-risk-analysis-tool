@@ -12,11 +12,11 @@ export function RiskAnalysisTable({ state }) {
   const {
     captureContext, setCaptureContext, captureRows, setCaptureRows,
     criteria, addCriterion, removeCriterion, renameCriterion,
+    activeRowId, setActiveRowId,
     showToast, saveItem, setView, setForm, setSelectedId, setSlideOverOpen
   } = state;
 
   const [isCriteriaSettingsOpen, setIsCriteriaSettingsOpen] = useState(false);
-  const [activeRowId, setActiveRowId] = useState(null);
 
   const selectedCount = captureRows.filter(r => r.selected).length;
 
