@@ -30,7 +30,7 @@ function DetailAvgLine({ details, currentScore }) {
   }
 
   const avg = Math.round((entries.reduce((a, [, v]) => a + v, 0) / entries.length) * 10) / 10;
-  const hasDiff = avg !== currentScore;
+  const hasDiff = Math.round(avg) !== currentScore;
 
   return (
     <div className="relative pl-1" ref={ref}>
