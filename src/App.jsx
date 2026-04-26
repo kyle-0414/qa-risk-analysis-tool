@@ -8,6 +8,22 @@ import { RiskDetailSlideOver } from "./components/features/detail/RiskDetailSlid
 import { RiskMatrix } from "./components/features/matrix/RiskMatrix";
 import { RiskGuide } from "./components/features/guide/RiskGuide";
 import { motion, AnimatePresence } from "framer-motion";
+import { Map, Activity } from "lucide-react";
+
+function ComingSoon({ icon: Icon, title }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
+      <div className="w-20 h-20 bg-slate-100 rounded-[28px] flex items-center justify-center">
+        <Icon className="w-9 h-9 text-slate-300" />
+      </div>
+      <div>
+        <div className="text-xs font-black text-slate-300 uppercase tracking-[0.3em] mb-2">Coming Soon</div>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">{title}</h2>
+        <p className="text-sm text-slate-400 font-medium mt-2">현재 준비 중입니다.</p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const state = useRiskToolState();
@@ -24,6 +40,10 @@ function App() {
         return <RiskMatrix state={state} />;
       case "guide":
         return <RiskGuide state={state} />;
+      case "strategy":
+        return <ComingSoon icon={Map} title="Test Strategy" />;
+      case "tracking":
+        return <ComingSoon icon={Activity} title="Risk Tracking" />;
       default:
         return <RiskAnalysisTable state={state} />;
     }
