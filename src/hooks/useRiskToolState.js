@@ -2,6 +2,11 @@ import { useState, useMemo, useCallback } from "react";
 import { INITIAL_ITEMS, EMPTY_FORM, EVIDENCE_OPTIONS } from "../constants/riskData";
 import { getScore, getPriority, formatNow, makeCaptureRow } from "../utils/riskCalculations";
 
+const INITIAL_CRITERIA = {
+  likelihood: ["테스트 난이도", "상호관계", "복잡도"],
+  impact: ["사용 빈도", "타 업무 영향도", "안전 규격 중요도"]
+};
+
 export function useRiskToolState() {
   const [items, setItems] = useState(INITIAL_ITEMS);
   const [view, setView] = useState("identification");
@@ -16,25 +21,54 @@ export function useRiskToolState() {
     status: "All",
     search: "",
   });
-  
-  const initialCriteria = { 
-    likelihood: ["테스트 난이도", "상호관계", "복잡도"], 
-    impact: ["사용 빈도", "타 업무 영향도", "안전 규격 중요도"] 
-  };
-  
+
   const [captureRows, setCaptureRows] = useState([
-    makeCaptureRow(initialCriteria),
-    makeCaptureRow(initialCriteria),
+    makeCaptureRow(INITIAL_CRITERIA),
+    makeCaptureRow(INITIAL_CRITERIA),
   ]);
-  
+
   const [captureContext, setCaptureContext] = useState({
     project: "",
     product: "",
     release: "",
     template: "",
   });
-  
-  const [criteria] = useState(initialCriteria);
+
+  const [criteria, setCriteria] = useState(INITIAL_CRITERIA);
+
+  const addCriterion = useCallback((group, name) => {
+    if (!name.trim()) return;
+    setCriteria(prev => ({ ...prev, [group]: [...prev[group], name] }));
+    setCaptureRows(prev => prev.map(row => ({
+      ...row,
+      [`${group}Details`]: { ...row[`${group}Details`], [name]: null },
+    })));
+  }, []);
+
+  const removeCriterion = useCallback((group, name) => {
+    setCriteria(prev => ({ ...prev, [group]: prev[group].filter(n => n !== name) }));
+    setCaptureRows(prev => prev.map(row => {
+      const key = `${group}Details`;
+      const newDetails = { ...row[key] };
+      delete newDetails[name];
+      const values = Object.values(newDetails).filter(v => v !== null);
+      const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : null;
+      return { ...row, [key]: newDetails, [group]: avg };
+    }));
+  }, []);
+
+  const renameCriterion = useCallback((group, oldName, newName) => {
+    if (!newName.trim() || newName === oldName) return;
+    setCriteria(prev => ({ ...prev, [group]: prev[group].map(n => n === oldName ? newName : n) }));
+    setCaptureRows(prev => prev.map(row => {
+      const key = `${group}Details`;
+      const newDetails = {};
+      for (const k of Object.keys(row[key])) {
+        newDetails[k === oldName ? newName : k] = row[key][k];
+      }
+      return { ...row, [key]: newDetails };
+    }));
+  }, []);
 
   const showToast = useCallback((message) => {
     setToast(message);
@@ -111,7 +145,8 @@ export function useRiskToolState() {
     
     // Initial Reset
     setItems([]);
-    setCaptureRows([makeCaptureRow(criteria), makeCaptureRow(criteria)]);
+    setCriteria(INITIAL_CRITERIA);
+    setCaptureRows([makeCaptureRow(INITIAL_CRITERIA), makeCaptureRow(INITIAL_CRITERIA)]);
     setCaptureContext({ project: "", product: "", release: "", template: "" });
     setView("identification");
     
@@ -140,22 +175,22 @@ export function useRiskToolState() {
 
     await wait(1000);
     // Add Row for more
-    setCaptureRows(prev => [...prev, makeCaptureRow(criteria)]);
+    setCaptureRows(prev => [...prev, makeCaptureRow(INITIAL_CRITERIA)]);
     await wait(300);
     // Item 3: Moderate
     setCaptureRows(prev => prev.map((r, i) => i === 2 ? { ...r, title: "세션 타임아웃 처리 로직 오류", relatedArea: "Authentication", likelihood: 5, impact: 5, likelihoodDetails:{"테스트 난이도":5,"상호관계":5,"복잡도":5}, impactDetails:{"사용 빈도":5,"타 업무 영향도":5,"안전 규격 중요도":5} } : r));
-    
+
     await wait(500);
     // Item 4: High
-    setCaptureRows(prev => [...prev, { ...makeCaptureRow(criteria), title: "결제 취소 메시지 큐 지연 현상", relatedArea: "Messaging", likelihood: 3, impact: 9, likelihoodDetails:{"테스트 난이도":3,"상호관계":3,"복잡도":3}, impactDetails:{"사용 빈도":9,"타 업무 영향도":9,"안전 규격 중요도":9} }]);
-    
+    setCaptureRows(prev => [...prev, { ...makeCaptureRow(INITIAL_CRITERIA), title: "결제 취소 메시지 큐 지연 현상", relatedArea: "Messaging", likelihood: 3, impact: 9, likelihoodDetails:{"테스트 난이도":3,"상호관계":3,"복잡도":3}, impactDetails:{"사용 빈도":9,"타 업무 영향도":9,"안전 규격 중요도":9} }]);
+
     await wait(500);
     // Item 5: Low
-    setCaptureRows(prev => [...prev, { ...makeCaptureRow(criteria), title: "UI 다크모드 대응 텍스트 시인성", relatedArea: "Frontend UI", likelihood: 5, impact: 1, likelihoodDetails:{"테스트 난이도":5,"상호관계":5,"복잡도":5}, impactDetails:{"사용 빈도":1,"타 업무 영향도":1,"안전 규격 중요도":1} }]);
+    setCaptureRows(prev => [...prev, { ...makeCaptureRow(INITIAL_CRITERIA), title: "UI 다크모드 대응 텍스트 시인성", relatedArea: "Frontend UI", likelihood: 5, impact: 1, likelihoodDetails:{"테스트 난이도":5,"상호관계":5,"복잡도":5}, impactDetails:{"사용 빈도":1,"타 업무 영향도":1,"안전 규격 중요도":1} }]);
 
     await wait(500);
     // Item 6: Low
-    setCaptureRows(prev => [...prev, { ...makeCaptureRow(criteria), title: "메인 배너 리소스 로딩 지연 (LCP)", relatedArea: "Frontend UI", likelihood: 3, impact: 3, likelihoodDetails:{"테스트 난이도":3,"상호관계":3,"복잡도":3}, impactDetails:{"사용 빈도":3,"타 업무 영향도":3,"안전 규격 중요도":3} }]);
+    setCaptureRows(prev => [...prev, { ...makeCaptureRow(INITIAL_CRITERIA), title: "메인 배너 리소스 로딩 지연 (LCP)", relatedArea: "Frontend UI", likelihood: 3, impact: 3, likelihoodDetails:{"테스트 난이도":3,"상호관계":3,"복잡도":3}, impactDetails:{"사용 빈도":3,"타 업무 영향도":3,"안전 규격 중요도":3} }]);
 
     // Show Mini Matrix
     await wait(1200);
@@ -226,7 +261,9 @@ export function useRiskToolState() {
   return {
     items, setItems, view, setView, form, setForm, selectedId, setSelectedId,
     toast, showToast, filters, setFilters, captureRows, setCaptureRows,
-    captureContext, setCaptureContext, criteria, resetForm, saveItem, deleteItem,
+    captureContext, setCaptureContext, criteria, setCriteria,
+    addCriterion, removeCriterion, renameCriterion,
+    resetForm, saveItem, deleteItem,
     filteredItems, isSlideOverOpen, setSlideOverOpen, runDemo
   };
 }

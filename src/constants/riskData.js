@@ -81,7 +81,7 @@ export const INITIAL_ITEMS = [
     title: "테스트 환경 준비 지연",
     relatedArea: "Environment",
     description: "검증용 환경 세팅 지연",
-    changeType: "Maintenance",
+    changeType: "Modify",
     riskType: "Project",
     changeSummary: "검증 일정 내 환경 준비 미완료",
     concernScenario: "핵심 시나리오 검증 범위가 축소될 수 있음",

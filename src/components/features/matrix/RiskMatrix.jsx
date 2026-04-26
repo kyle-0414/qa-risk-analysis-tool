@@ -80,7 +80,7 @@ export function RiskMatrix({ state }) {
                 <Select value={filters.riskType} onChange={(e) => setFilters(f => ({...f, riskType: e.target.value}))} options={["All", "Product", "Project"]} />
             </Field>
             <Field label="Change Type">
-                <Select value={filters.changeType} onChange={(e) => setFilters(f => ({...f, changeType: e.target.value}))} options={["All", "New", "Modify", "Maintenance", "Hotfix"]} />
+                <Select value={filters.changeType} onChange={(e) => setFilters(f => ({...f, changeType: e.target.value}))} options={["All", "New", "Modify", "Delete"]} />
             </Field>
             <Field label="Search Items">
                 <Input value={filters.search} onChange={(e) => setFilters(f => ({...f, search: e.target.value}))} placeholder="Search by name or note..." />

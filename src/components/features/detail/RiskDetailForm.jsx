@@ -36,7 +36,7 @@ export function RiskDetailForm({ form, setForm }) {
                       <Select value={form.riskType} onChange={(e) => updateForm("riskType", e.target.value)} options={["Product", "Project"]} />
                   </Field>
                   <Field label="Change Type">
-                      <Select value={form.changeType} onChange={(e) => updateForm("changeType", e.target.value)} options={["New", "Modify", "Maintenance", "Hotfix"]} />
+                      <Select value={form.changeType} onChange={(e) => updateForm("changeType", e.target.value)} options={["New", "Modify", "Delete"]} />
                   </Field>
               </div>
             </div>

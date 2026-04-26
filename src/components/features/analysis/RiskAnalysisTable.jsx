@@ -1,17 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Input, Select } from "../../common/CommonUI";
 import { Badge, StatCard, Field } from "../../common/DisplayUI";
 import { RISK_SCALE } from "../../../constants/riskData";
 import { getScore, getPriority, makeCaptureRow } from "../../../utils/riskCalculations";
-import { Plus, Save, Trash2, ExternalLink, HelpCircle, Activity, TrendingUp, PanelRightOpen } from "lucide-react";
+import { Plus, Save, Trash2, ExternalLink, HelpCircle, Activity, TrendingUp, PanelRightOpen, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MiniRiskMatrix } from "./MiniRiskMatrix";
+import { CriteriaSettingsSlideOver } from "../settings/CriteriaSettingsSlideOver";
 
 export function RiskAnalysisTable({ state }) {
-  const { 
-    captureContext, setCaptureContext, captureRows, setCaptureRows, 
-    criteria, showToast, saveItem, setView, setForm, setSelectedId, setSlideOverOpen
+  const {
+    captureContext, setCaptureContext, captureRows, setCaptureRows,
+    criteria, addCriterion, removeCriterion, renameCriterion,
+    showToast, saveItem, setView, setForm, setSelectedId, setSlideOverOpen
   } = state;
+
+  const [isCriteriaSettingsOpen, setIsCriteriaSettingsOpen] = useState(false);
 
   const selectedCount = captureRows.filter(r => r.selected).length;
 
@@ -131,6 +135,9 @@ export function RiskAnalysisTable({ state }) {
               <Trash2 className="w-4 h-4 mr-2" /> Delete Selected ({selectedCount})
             </Button>
           )}
+          <Button variant="ghost" onClick={() => setIsCriteriaSettingsOpen(true)} size="md" title="평가 항목 설정">
+            <SlidersHorizontal className="w-4 h-4 mr-2" /> Criteria
+          </Button>
           <Button variant="secondary" onClick={addRow} size="md">
             <Plus className="w-4 h-4 mr-2" /> Add Row
           </Button>
@@ -328,6 +335,15 @@ export function RiskAnalysisTable({ state }) {
           <MiniRiskMatrix items={captureRows} />
         </div>
       </div>
+
+      <CriteriaSettingsSlideOver
+        isOpen={isCriteriaSettingsOpen}
+        onClose={() => setIsCriteriaSettingsOpen(false)}
+        criteria={criteria}
+        addCriterion={addCriterion}
+        removeCriterion={removeCriterion}
+        renameCriterion={renameCriterion}
+      />
     </div>
   );
 }
