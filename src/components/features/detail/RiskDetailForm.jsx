@@ -1,14 +1,63 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Input, Select, TextArea } from "../../common/CommonUI";
 import { Badge, StatCard, Field } from "../../common/DisplayUI";
 import { getScore, getPriority, getIntensity } from "../../../utils/riskCalculations";
 import { EVIDENCE_OPTIONS } from "../../../constants/riskData";
 import { Info, CheckCircle2, AlertTriangle, Activity } from "lucide-react";
 
+function calcDetailsAvg(details) {
+  if (!details) return null;
+  const vals = Object.values(details).filter(v => v !== null);
+  if (!vals.length) return null;
+  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+}
+
+function DetailAvgLine({ details, currentScore }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const entries = details ? Object.entries(details).filter(([, v]) => v !== null) : [];
+
+  if (!details || entries.length === 0) {
+    return <div className="text-[11px] text-slate-300 pl-1">세부항목 미입력</div>;
+  }
+
+  const avg = Math.round((entries.reduce((a, [, v]) => a + v, 0) / entries.length) * 10) / 10;
+  const hasDiff = avg !== currentScore;
+
+  return (
+    <div className="relative pl-1" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`text-[11px] text-left hover:underline ${hasDiff ? "text-amber-600 font-bold" : "text-slate-400"}`}
+      >
+        세부항목 평균: {avg}
+        {hasDiff && <span className="ml-1.5 text-amber-500">→ {currentScore}로 조정됨</span>}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-5 z-20 bg-slate-900 text-white rounded-xl text-xs p-3 whitespace-nowrap shadow-xl border border-white/10">
+          {entries.map(([k, v]) => `${k}: ${v}`).join(" · ")}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RiskDetailForm({ form, setForm }) {
   const score = getScore(form);
   const priority = getPriority(score);
   const intensity = getIntensity(score);
+
+  const lhAvg = calcDetailsAvg(form.likelihoodDetails);
+  const imAvg = calcDetailsAvg(form.impactDetails);
+  const detailScore = (lhAvg !== null && imAvg !== null) ? Math.round(lhAvg * imAvg) : null;
 
   const updateForm = (key, value) => setForm(f => ({ ...f, [key]: value }));
   const toggleEvidence = (flag) => {
@@ -62,26 +111,38 @@ export function RiskDetailForm({ form, setForm }) {
                 <Field label="Likelihood Logic (발생 가능성 근거)">
                   <TextArea value={form.likelihoodReason} onChange={(e) => updateForm("likelihoodReason", e.target.value)} className="h-24" />
                 </Field>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest min-w-[100px]">Likelihood Score:</div>
-                  <div className="flex gap-1.5 flex-wrap">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-[100px]">
+                      <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-0.5">QA 최종 판단</div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Likelihood Score:</div>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
                       {[0,1,3,5,9].map(n => (
-                          <button key={n} onClick={() => updateForm('likelihood', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.likelihood === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
+                        <button key={n} onClick={() => updateForm('likelihood', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.likelihood === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
                       ))}
+                    </div>
                   </div>
+                  <DetailAvgLine details={form.likelihoodDetails} currentScore={form.likelihood} />
                 </div>
               </div>
               <div className="space-y-4">
                 <Field label="Impact Logic (장애 영향도 근거)">
                   <TextArea value={form.impactReason} onChange={(e) => updateForm("impactReason", e.target.value)} className="h-24" />
                 </Field>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest min-w-[100px]">Impact Score:</div>
-                  <div className="flex gap-1.5 flex-wrap">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-[100px]">
+                      <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-0.5">QA 최종 판단</div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Impact Score:</div>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
                       {[0,1,3,5,9].map(n => (
-                          <button key={n} onClick={() => updateForm('impact', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.impact === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
+                        <button key={n} onClick={() => updateForm('impact', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.impact === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
                       ))}
+                    </div>
                   </div>
+                  <DetailAvgLine details={form.impactDetails} currentScore={form.impact} />
                 </div>
               </div>
           </div>
@@ -135,7 +196,12 @@ export function RiskDetailForm({ form, setForm }) {
           <div className="space-y-8">
               <div className="flex items-center justify-between border-b border-blue-100 pb-4">
                   <span className="text-sm font-bold text-slate-500">Total Score</span>
-                  <span className="text-4xl font-black text-slate-900 tracking-tight">{score ?? '0'}</span>
+                  <div className="flex flex-col items-end gap-0.5">
+                    {detailScore !== null && detailScore !== score && (
+                      <span className="text-sm text-slate-400 line-through">{detailScore}</span>
+                    )}
+                    <span className="text-4xl font-black text-slate-900 tracking-tight">{score ?? '0'}</span>
+                  </div>
               </div>
               <div className="flex items-center justify-between border-b border-blue-100 pb-4">
                   <span className="text-sm font-bold text-slate-500">Priority Level</span>
