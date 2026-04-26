@@ -113,17 +113,11 @@ export function RiskDetailForm({ form, setForm }) {
                 </Field>
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-3">
-                    <div className="min-w-[100px]">
-                      <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-0.5">QA 최종 판단</div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Likelihood Score:</div>
-                    </div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Likelihood Score:</div>
                     <div className="flex gap-1.5 flex-wrap items-center">
                       {[0,1,3,5,9].map(n => (
                         <button key={n} onClick={() => updateForm('likelihood', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.likelihood === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
                       ))}
-                      {form.likelihood !== null && ![0,1,3,5,9].includes(form.likelihood) && (
-                        <span className="text-[11px] text-slate-400 border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">현재: {form.likelihood}</span>
-                      )}
                     </div>
                   </div>
                   <DetailAvgLine details={form.likelihoodDetails} currentScore={form.likelihood} />
@@ -135,17 +129,11 @@ export function RiskDetailForm({ form, setForm }) {
                 </Field>
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-3">
-                    <div className="min-w-[100px]">
-                      <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-0.5">QA 최종 판단</div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Impact Score:</div>
-                    </div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Impact Score:</div>
                     <div className="flex gap-1.5 flex-wrap items-center">
                       {[0,1,3,5,9].map(n => (
                         <button key={n} onClick={() => updateForm('impact', n)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border transition-all ${form.impact === n ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-300'}`}>{n}</button>
                       ))}
-                      {form.impact !== null && ![0,1,3,5,9].includes(form.impact) && (
-                        <span className="text-[11px] text-slate-400 border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50">현재: {form.impact}</span>
-                      )}
                     </div>
                   </div>
                   <DetailAvgLine details={form.impactDetails} currentScore={form.impact} />
