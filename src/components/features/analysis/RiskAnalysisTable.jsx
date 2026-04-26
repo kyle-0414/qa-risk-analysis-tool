@@ -16,6 +16,7 @@ export function RiskAnalysisTable({ state }) {
   } = state;
 
   const [isCriteriaSettingsOpen, setIsCriteriaSettingsOpen] = useState(false);
+  const [activeRowId, setActiveRowId] = useState(null);
 
   const selectedCount = captureRows.filter(r => r.selected).length;
 
@@ -25,32 +26,35 @@ export function RiskAnalysisTable({ state }) {
   };
 
   const openDetailedAnalysis = (row) => {
-    setForm({
-      title: row.title,
-      relatedArea: row.relatedArea,
-      description: row.note || "",
-      riskType: row.riskType,
-      changeType: "New", // Default for analysis tab
-      likelihood: row.likelihood,
-      impact: row.impact,
-      likelihoodDetails: row.likelihoodDetails,
-      impactDetails: row.impactDetails,
-      status: "Draft",
-      project: captureContext.project,
-      product: captureContext.product,
-      release: captureContext.release,
-      evidenceFlags: [],
-      changeSummary: "",
-      concernScenario: row.note || "",
-      likelihoodReason: "",
-      impactReason: "",
-      dependencyArea: "",
-      testConstraints: "",
-      focusPoints: "",
-      regressionRequired: false,
-      logCheckRequired: false,
-      extraReviewRequired: false,
-    });
+    if (activeRowId !== row.localId) {
+      setForm({
+        title: row.title,
+        relatedArea: row.relatedArea,
+        description: row.note || "",
+        riskType: row.riskType,
+        changeType: "New",
+        likelihood: row.likelihood,
+        impact: row.impact,
+        likelihoodDetails: row.likelihoodDetails,
+        impactDetails: row.impactDetails,
+        status: "Draft",
+        project: captureContext.project,
+        product: captureContext.product,
+        release: captureContext.release,
+        evidenceFlags: [],
+        changeSummary: "",
+        concernScenario: row.note || "",
+        likelihoodReason: "",
+        impactReason: "",
+        dependencyArea: "",
+        testConstraints: "",
+        focusPoints: "",
+        regressionRequired: false,
+        logCheckRequired: false,
+        extraReviewRequired: false,
+      });
+      setActiveRowId(row.localId);
+    }
     setSelectedId(null);
     setSlideOverOpen(true);
   };
